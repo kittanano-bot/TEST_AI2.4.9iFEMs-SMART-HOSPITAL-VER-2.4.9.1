@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST_AI2.4.9iFEMs SMART HOSPITAL VER 2.4.9.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Prompt', sans-serif; background: #f8fafc; margin: 0; min-height: 100vh; overflow-x: hidden; }
+        .page { display: none; animation: fadeIn 3.0s ease-in-out; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .heartbeat { animation: hb 5.0s infinite; display: inline-block; color: #ef4444; }
+        @keyframes hb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .iframe-wrapper { width: 100%; height: 75vh; overflow: auto; border-radius: 16px; background: #fff; position: relative; border: 1px solid #e2e8f0; }
+        iframe { border: none; transform-origin: 0 0; transition: transform 0.2s ease; width: 142.8%; height: 142.8%; transform: scale(0.7); }
+
+        .zoom-controls { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
+        .zoom-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: white; color: #1e293b; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
+        
+        .bottom-nav { background: white; position: fixed; bottom: 0; width: 100%; z-index: 100; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 10px 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+        .nav-item { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; color: #94a3b8; cursor: pointer; }
+        .nav-item.active-nav { color: #2563eb; }
+
+        .input-group { position: relative; width: 100%; }
+        .input-field { width: 100%; padding: 12px 16px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 14px; }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; }
+        
+        .tab-btn { padding: 8px 16px; border-radius: 12px; font-size: 11px; font-weight: bold; transition: 0.2s; border: 1px solid #e2e8f0; background: white; color: #64748b; white-space: nowrap; }
+        .tab-btn.active-tab { background: #1e3a8a; color: white; border-color: #1e3a8a; }
+
+        .lang-btn { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid #e2e8f0; background: white; color: #64748b; }
+        .lang-btn.active-lang { background: #1e3a8a; color: white; border-color: #1e3a8a; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes alert-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+.critical-alert {
+    animation: alert-pulse 1.5s infinite;
+    border: 2px solid #ef4444 !important;
+    background: rgba(127, 29, 29, 0.4) !important;
+}
+.standard-line {
+    border-top: 1px dashed #ef4444;
+    position: relative;
+}
+.standard-line::after {
+    content: 'LIMIT: 0.75';
+    font-size: 8px;
+    color: #ef4444;
+    position: absolute;
+    right: 0; top: -12px;
+}
+
+
+    </style>
+</head>
+<body>
+
+    <nav id="main-header" class="bg-[#1e3a8a] text-white p-3 sticky top-0 z-50 flex justify-between items-center shadow-lg hidden">
+        <div class="flex items-center gap-3">
+            <div class="bg-white p-1 rounded" style="width: 45px; height: 45px;"><div id="qrcode"></div></div>
+            <div>
+            <h1 class="font-bold text-xs md:text-lg leading-tight text-white">iFEMs SMART HOSPITAL MANAGEMENT</h1>
+	    <p class="text-[10px] opacity-80 uppercase tracking-tighter">Update Ver 2.4.9 | Edited By: Mr.Kittanan ONSEE <span id="lang-status">[THAILAND]</span></p> 
+            <p id="user-display-name" class="text-[8px] text-yellow-300 font-bold uppercase tracking-tighter"></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="flex gap-1 mr-1 bg-white/10 p-1 rounded-lg">
+                <button onclick="changeLang('th')" class="lang-btn btn-th active-lang">TH</button>
+                <button onclick="changeLang('en')" class="lang-btn btn-en">EN</button>
+            </div>
+             	<div class="flex flex-col items-end px-2">
+		<button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-bold text-[10px] transition shadow-md">LOGOUT</button>        		<div class="text-[8px] mt-1 text-right leading-tight font-medium">
+                	<div id="header-time-th" class="text-green-400"></div>
+                	<div id="header-time-en" class="text-slate-300"></div>
+	     </div>
+	</div>
+    </nav>
+
+    <div id="page-auth" class="page active flex items-center justify-center min-h-screen p-4 relative">
+        <div class="absolute top-5 right-5 flex gap-1">
+            <button onclick="changeLang('th')" class="lang-btn btn-th active-lang">TH</button>
+            <button onclick="changeLang('en')" class="lang-btn btn-en">EN</button>
+        </div>
+
+        <div class="bg-white p-8 rounded-[35px] w-full max-w-sm shadow-2xl border border-slate-100 text-center">
+            <div class="mb-6"><i class="fa-solid fa-hospital-user text-6xl text-blue-700"></i><i class="fa-solid fa-heart-pulse text-6xl heartbeat ml-1"></i></div>
+            
+            <div id="view-login">
+                <h2 class="text-xl font-bold text-gray-600 mb-6 uppercase">iFEMs SMART | LOGIN</h2>
+                <div class="space-y-4">
+                    <input type="text" id="login-email" class="input-field" data-lang-ph="ph_email" placeholder="Email / Username">
+                    <div class="input-group">
+                        <input type="password" id="login-pass" class="input-field" data-lang-ph="ph_pass" placeholder="Password">
+                        <i class="fa-solid fa-eye toggle-pass" onclick="togglePassword('login-pass', this)"></i>
+                    </div>
+                    <button onclick="doLogin()" data-lang="btn_signin" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-800 transition">SIGN IN</button>
+                    <p data-lang="link_reg" class="text-xs text-gray-500 font-bold cursor-pointer pt-4 hover:underline" onclick="toggleAuth('reg')">ลงทะเบียนเข้าใช้งานใหม่</p>
+                </div>
+            </div>
+
+            <div id="view-register" class="hidden">
+                <h2 data-lang="reg_title" class="text-xl font-black text-blue-800 mb-6 uppercase">ลงทะเบียน</h2>
+                <div class="space-y-3 text-left">
+                    <input type="text" id="reg-name" class="input-field" data-lang-ph="ph_name" placeholder="ชื่อ-นามสกุล">
+                    <input type="email" id="reg-email" class="input-field" data-lang-ph="ph_email" placeholder="Email">
+                    <div class="input-group">
+                        <input type="password" id="reg-pass" class="input-field" data-lang-ph="ph_pass" placeholder="กำหนดรหัสผ่าน">
+                        <i class="fa-solid fa-eye toggle-pass" onclick="togglePassword('reg-pass', this)"></i>
+                    </div>
+                    <select id="reg-building" class="input-field font-bold text-slate-500">
+                        <option value="" data-lang="opt_bldg">เลือกอาคารที่รับผิดชอบ</option>
+                        <option value="ViMUT Hospital (VM)">VH (ViMUT Hospital)</option>
+                        <option value="ViMUT-Theptarin (VTH)">VTH (ViMUT-Theptarin)</option>
+                        <option value="all" data-lang="opt_all">ALL (รับผิดชอบทุกอาคาร)</option>
+                    </select>
+                    <button onclick="doRegister()" data-lang="btn_submit" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold shadow-lg mt-4 hover:bg-emerald-700 transition">ส่งคำขอลงทะเบียน</button>
+                    <p data-lang="link_back" class="text-xs text-slate-400 text-center cursor-pointer pt-4" onclick="toggleAuth('login')">กลับไปหน้าเข้าสู่ระบบ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-monitor" class="page p-4 pb-32">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col mb-4 gap-3">
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-display text-blue-600"></i> <span data-lang="mon_title">แดชบอร์ดติดตามผล</span>
+                </h2>
+                <div id="monitor-tabs" class="flex flex-nowrap overflow-x-auto gap-2 pb-2 no-scrollbar"></div>
+		</div>
+            <div class="iframe-wrapper shadow-inner border-2 border-slate-200">
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="adjustZoom('monitor', 0.1)"><i class="fa-solid fa-plus"></i></button>
+                    <button class="zoom-btn" onclick="adjustZoom('monitor', -0.1)"><i class="fa-solid fa-minus"></i></button>
+                </div>
+                <iframe id="iframe-monitor" src="" style="width: 142.8%; height: 142.8%; transform: scale(0.7);"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-iot" class="page p-4 pb-32">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-xs font-bold text-emerald-600 mb-2 uppercase tracking-widest"><i class="fa-solid fa-microchip mr-1"></i> <span data-lang="nav_iot">IoT Dashboard</span></h2>
+            <div class="iframe-wrapper" style="height: 70vh;">
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="adjustZoom('iot', 0.1)"><i class="fa-solid fa-plus text-emerald-600"></i></button>
+                    <button class="zoom-btn" onclick="adjustZoom('iot', -0.1)"><i class="fa-solid fa-minus text-emerald-600"></i></button>
+                </div>
+                <iframe id="iframe-iot" src="https://www.modelaaiot.com/dashboard/JdIcXHOF4gG3smYXyF5V"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-apps" class="page p-4 pb-32">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 data-lang="rec_title" class="text-xl font-bold text-slate-800 mb-6">บันทึกข้อมูลผ่านมือถือ</h2>
+            <div id="app-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+    </div>
+
+<div id="page-ai" class="page p-4 pb-32">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="mb-6">
+                <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <i class="fa-solid fa-brain text-7xl text-green-600"></i>
+                </div>
+                <h2 class="text-4xl font-extrabold text-green-500 uppercase">AI System Diagnostics</h2>
+                <p class="text-[15px] text-red-600 uppercase tracking-widest mt-1">All ViMUT Building Intelligent Analysis</p>
+            </div>
+
+            <button onclick="runMainAI()" id="btn-run-ai" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-bold shadow-xl flex items-center justify-center gap-3 mb-8 transition-all active:scale-95">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> START INTEGRATED ANALYSIS
+            </button>
+
+            <div id="ai-result-area" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="ai-card border-t-4 border-blue-600 text-left">
+                        <h3 class="font-bold text-blue-800 text-xs mb-4 uppercase flex items-center gap-2"><i class="fa-solid fa-hospital"></i> VM Subsystems</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="analyzeSub('vm-chiller')" class="sub-btn vm-btn"><i class="fa-solid fa-snowflake"></i> Chiller</button>
+                            <button onclick="analyzeSub('vm-safety')" class="sub-btn vm-btn"><i class="fa-solid fa-shield-halved"></i> Safety</button>
+                        </div>
+                    </div>
+                    <div class="ai-card border-t-4 border-orange-500 text-left">
+                        <h3 class="font-bold text-orange-800 text-xs mb-4 uppercase flex items-center gap-2"><i class="fa-solid fa-hospital-user"></i> VTH Subsystems</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="analyzeSub('vth-fire')" class="sub-btn vth-btn"><i class="fa-solid fa-fire-extinguisher"></i> Fire Pump</button>
+                            <button onclick="analyzeSub('vth-solar')" class="sub-btn vth-btn"><i class="fa-solid fa-sun"></i> Solar Cell</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ai-detail-display" class="bg-slate-900 text-white p-8 rounded-[35px] border-4 border-purple-500 shadow-2xl min-h-[220px] flex items-center justify-center">
+                    <p class="text-slate-400 italic text-sm">กรุณาเลือกระบบย่อยด้านบนเพื่อดูบทวิเคราะห์จาก AI</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-admin" class="page p-4 pb-32">
+        <div class="max-w-5xl mx-auto">
+            <h2 data-lang="admin_header" class="text-lg font-bold text-red-600 mb-4 uppercase italic"><i class="fa-solid fa-user-shield mr-2"></i> User Management</h2>
+            <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead id="admin-table-head" class="bg-slate-800 text-white uppercase"></thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-nav" class="bottom-nav hidden shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+        <div onclick="switchPage('page-monitor', this)" class="nav-item active-nav"><i class="fa-solid fa-chart-line text-xl"></i><span class="text-[9px] font-bold uppercase" data-lang="nav_mon">iFEMs DASHBOARD MONITOR</span></div>
+        <div onclick="switchPage('page-iot', this)" class="nav-item"><i class="fa-solid fa-tower-broadcast text-xl"></i><span class="text-[9px] font-bold uppercase" data-lang="nav_iot">IoT DASHBOARD</span></div>
+        ||<div onclick="switchPage('page-ai', this)" class="nav-item"><i class="fa-brands fa-free-code-camp text-xl"></i><span class="text-[9px] font-bold uppercase" data-lang="nav_ai">AI ANALYSIS</span></div>||
+	<div onclick="switchPage('page-apps', this)" class="nav-item"><i class="fa-solid fa-mobile-screen-button text-xl"></i><span class="text-[9px] font-bold uppercase" data-lang="nav_rec">MOBILE RECORD</span></div>
+        <div id="admin-nav-item" onclick="switchPage('page-admin', this)" class="nav-item hidden text-red-600"><i class="fa-solid fa-unlock-keyhole text-xl"></i><span class="text-[9px] font-bold uppercase" data-lang="nav_admin">ADMIN</span></div>
+    </div>
+
+    <script>
+ // --- 1. ระบบเวลา 2 ภาษา ---
+        function updateTime() {
+            const now = new Date();
+            const en = now.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            document.getElementById('header-time-en').innerText = en;
+        }
+        setInterval(updateTime, 1000);
+
+
+        function doLogin() {
+            document.getElementById('page-auth').classList.remove('active');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('main-nav').classList.remove('hidden');
+            document.getElementById('page-ai').classList.add('active'); // เริ่มที่หน้า AI เพื่อทดสอบ
+            document.getElementById('user-info').innerText = "VIMUT ENGINEER | ADMIN";
+            updateClock();
+        }
+
+// 2. Main AI Scan
+        function runMainAI() {
+            const btn = document.getElementById('btn-run-ai');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ANALYZING SUBSYSTEM DATA...';
+            setTimeout(() => {
+                document.getElementById('ai-result-area').classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> SCAN COMPLETED';
+                btn.className = "w-full bg-green-600 text-white py-5 rounded-[25px] font-bold shadow-xl flex items-center justify-center gap-3 mb-8";
+            }, 1500);
+        }
+
+// 3. Sub-System AI Analysis (ดึงข้อมูลจริงจาก Google sheet)
+// ตั้งค่าตัวแปร Global
+let alertAudio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+alertAudio.loop = true;
+let isMuted = false;
+
+async function analyzeSub(type) {
+    const display = document.getElementById('ai-detail-display');
+    
+    // ข้อมูลจริงที่คุณดึงมาได้ (จำลองการเปลี่ยนค่าเพื่อทดสอบระบบ)
+    const realData = {"timestamp":"2025-12-13T08:00:00.000Z","chillno":1,"load":0.564,"kwtr":0.924}; 
+    
+    const kwtr = parseFloat(realData.kwtr);
+    const limit = 0.75;
+    const isCritical = kwtr > limit;
+
+    // ระบบจัดการเสียง
+    if (isCritical && !isMuted) {
+        alertAudio.play().catch(e => console.log("Audio play blocked by browser"));
+    } else {
+        alertAudio.pause();
+    }
+
+    // อัปเดตประวัติและดึงข้อมูล 5 ค่าล่าสุดทำกราฟเส้น
+    const logs = updateLogs(realData.timestamp, kwtr, isCritical);
+    const last5Logs = logs.slice(0, 5).reverse();
+
+    let reportHtml = `
+        <div class="text-left w-full p-2 ${isCritical ? 'critical-alert' : ''} transition-all duration-500">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center">
+                    ${isCritical ? '<span class="alarm-light light-red"></span>' : '<span class="alarm-light bg-green-500"></span>'}
+                    <span class="text-blue-400 font-bold text-[11px] uppercase">Chiller Monitoring System</span>
+                </div>
+                <span class="text-[9px] text-slate-500">${new Date().toLocaleTimeString()}</span>
+            </div>
+
+            <div class="mb-3 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+                <p class="text-[8px] text-slate-500 mb-2 uppercase flex justify-between">
+                    Efficiency Trend (Last 5 scans) <span>Limit: 0.75</span>
+                </p>
+                <div class="trend-container">
+                    ${last5Logs.map(l => `
+                        <div class="trend-bar ${l.v > limit ? 'critical' : ''}" 
+                             style="height: ${(l.v/1.0)*100}%" title="${l.v.toFixed(3)}">
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <div class="bg-slate-800 p-2 rounded border border-slate-700 text-center">
+                    <p class="text-[7px] text-slate-500 uppercase">Chiller</p>
+                    <p class="text-xs font-bold text-white">#${realData.chillno}</p>
+                </div>
+                <div class="bg-slate-800 p-2 rounded border border-slate-700 text-center">
+                    <p class="text-[7px] text-slate-500 uppercase">kW/TR</p>
+                    <p class="text-xs font-bold ${isCritical ? 'text-red-500' : 'text-green-400'}">${kwtr.toFixed(3)}</p>
+                </div>
+                <div class="bg-slate-800 p-2 rounded border border-slate-700 text-center">
+                    <p class="text-[7px] text-slate-500 uppercase">Load (%)</p>
+                    <p class="text-xs font-bold text-yellow-500">${(realData.load * 100).toFixed(1)}%</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <div class="flex-1 bg-purple-900/20 p-2 rounded border border-purple-500/30 text-[9px] leading-tight text-slate-200">
+                    <span class="text-purple-400 font-bold">AI DIAGNOSTIC:</span> 
+                    ${isCritical ? 'วิกฤต! ประสิทธิภาพต่ำกว่าเกณฑ์ ตรวจพบความผิดปกติในระบบระบายความร้อน' : 'ระบบทำงานปกติ ประสิทธิภาพอยู่ในเกณฑ์มาตรฐาน (Optimal Performance)'}
+                </div>
+                ${isCritical ? `<button onclick="toggleMute()" class="px-2 bg-red-600 rounded text-[9px] font-bold animate-pulse">MUTE</button>` : ''}
+            </div>
+
+            <div class="mt-3">
+                <div class="flex justify-between items-center px-1 mb-1">
+                    <span class="text-[8px] text-slate-600 uppercase">Historical Logs</span>
+                    <button onclick="clearLogs()" class="text-[8px] text-red-900 hover:text-red-500 transition">Clear</button>
+                </div>
+                <div id="log-container" class="max-h-16 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                    </div>
+            </div>
+        </div>
+    `;
+
+    display.innerHTML = reportHtml;
+    renderLogs();
+}
+
+// ฟังก์ชันอัปเดต Log และคืนค่า List ทั้งหมด
+function updateLogs(time, val, critical) {
+    let logs = JSON.parse(localStorage.getItem('chiller_logs') || '[]');
+    logs.unshift({t: new Date().toLocaleTimeString(), v: val, s: critical ? 'CRITICAL' : 'NORMAL'});
+    if (logs.length > 20) logs.pop(); 
+    localStorage.setItem('chiller_logs', JSON.stringify(logs));
+    return logs;
+}
+
+function renderLogs() {
+    const container = document.getElementById('log-container');
+    let logs = JSON.parse(localStorage.getItem('chiller_logs') || '[]');
+    container.innerHTML = logs.map(l => `
+        <div class="flex justify-between text-[8px] text-slate-500 bg-slate-900/50 p-1 rounded border-l-2 ${l.s === 'CRITICAL' ? 'border-red-500' : 'border-green-500'}">
+            <span>${l.t} - Scan Result</span>
+            <span class="font-bold">${l.v.toFixed(3)} kW/TR</span>
+        </div>
+    `).join('');
+}
+
+function toggleMute() {
+    isMuted = !isMuted;
+    alertAudio.pause();
+    alert("System Muted: การแจ้งเตือนจะยังทำงานผ่านสัญญาณไฟ แต่ปิดระบบเสียง");
+}
+
+function clearLogs() {
+    const pass = prompt("ADMIN ACCESS REQUIRED:");
+    if (pass === "admin123") {
+        localStorage.removeItem('chiller_logs');
+        renderLogs();
+    }
+}
+// --- 1. Translation System ---
+        const translations = {
+            th: {
+                app_title: "iFEMs SMART HOSPITAL [ViMUT HOLDING]",
+                login_title: "เข้าสู่ระบบ iFEMs",
+                btn_signin: "ลงชื่อเข้าใช้",
+                link_reg: "ลงทะเบียนเข้าใช้งานใหม่",
+                reg_title: "ลงทะเบียน",
+                ph_email: "อีเมล / ชื่อผู้ใช้",
+                ph_pass: "รหัสผ่าน",
+                ph_name: "ชื่อ-นามสกุล",
+                opt_bldg: "เลือกอาคารที่รับผิดชอบ",
+                opt_all: "ทุกอาคาร (ALL)",
+                btn_submit: "ส่งคำขอลงทะเบียน",
+                link_back: "กลับหน้าเข้าสู่ระบบ",
+                mon_title: "แดชบอร์ดติดตามผล",
+                nav_mon: "ติดตามผล",
+                nav_iot: "ไอโอที",
+                nav_ai: "เอไอ",
+		nav_rec: "บันทึกข้อมูล",
+                nav_admin: "แอดมิน",
+                rec_title: "บันทึกข้อมูลผ่านมือถือ",
+                admin_header: "จัดการผู้ใช้งาน",
+                col_name: "ผู้ใช้งาน",
+                col_bldg: "อาคาร",
+                col_status: "สถานะ",
+                col_action: "จัดการ",
+                stat_pending: "รออนุมัติ",
+                stat_active: "ใช้งานอยู่",
+                btn_approve: "อนุมัติ",
+                btn_delete: "ลบ"
+            },
+            en: {
+                app_title: "iFEMs SMART HOSPITAL [ViMUT HOLDING]",
+                login_title: "iFEMs LOGIN",
+                btn_signin: "SIGN IN",
+                link_reg: "Create New Account",
+                reg_title: "Registration",
+                ph_email: "Email / Username",
+                ph_pass: "Password",
+                ph_name: "Full Name",
+                opt_bldg: "Select Building",
+                opt_all: "All Buildings",
+                btn_submit: "Submit Request",
+                link_back: "Back to Login",
+                mon_title: "iFEMS DASHBOARD MONITOR",
+                nav_mon: "iFEMs DASHBOARD MONITOR",
+                nav_iot: "IoT DASHBOARD MONITOR",
+                nav_ai: "AI ANALYSIS",
+		nav_rec: "MOBILE DATA RECORD",
+                nav_admin: "ADMIN SETUP",
+                rec_title: "Mobile Data Recording",
+                admin_header: "User Management",
+                col_name: "User Info",
+                col_bldg: "Building",
+                col_status: "Status",
+                col_action: "Actions",
+                stat_pending: "WAITING",
+                stat_active: "ACTIVE",
+                btn_approve: "APPROVE",
+                btn_delete: "DELETE"
+            }
+        };
+
+        let currentLang = localStorage.getItem('ifems_lang') || 'th';
+
+        function changeLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('ifems_lang', lang);
+            
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (translations[lang][key]) el.innerText = translations[lang][key];
+            });
+
+            document.querySelectorAll('[data-lang-ph]').forEach(el => {
+                const key = el.getAttribute('data-lang-ph');
+                if (translations[lang][key]) el.placeholder = translations[lang][key];
+            });
+
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active-lang'));
+            document.querySelectorAll('.btn-' + lang).forEach(b => b.classList.add('active-lang'));
+
+            if(currentUser && currentUser.role === 'admin') renderAdminTable();
+        }
+
+        // --- 2. Logic & Data ---
+        let scales = { monitor: 0.7, iot: 0.7 };
+        let currentUser = null;
+        let approvedUsers = JSON.parse(localStorage.getItem('ifems_approved')) || [
+            { id: 1, email: 'admin', pass: '1234', name: 'Administrator', bldg: 'all', role: 'admin' }
+        ];
+        let pendingUsers = JSON.parse(localStorage.getItem('ifems_pending')) || [];
+
+        const monitorDashboards = [
+            { id: 'vm-main', name: '🏥 ViMUT SMART HOSPITAL(VM)', url: 'https://lookerstudio.google.com/embed/reporting/4be14bed-81e8-461e-9489-4c94a63dd125/page/p_nfsx6224id', building: 'ViMUT Hospital (VM)' },
+ 	    { id: 'vm-main', name: '🏥 ViMUT SAFETY & SECURITY(VM)', url: 'https://lookerstudio.google.com/embed/reporting/b865dbca-accb-49bc-a306-614245aef600/page/S0IMF', building: 'ViMUT Hospital (VM)' },
+
+            { id: 'vth-main', name: '🏨 THEPTARIN SMART HOSPITAL(VTH)', url: 'https://lookerstudio.google.com/embed/reporting/baa2ac8b-9f66-4276-90c6-be191812184d/page/XJvUF', building: 'ViMUT-Theptarin (VTH)' },
+	    { id: 'solar', name: '☀️ FUSION SOLAR CELL', url: 'https://sg5.fusionsolar.huawei.com/pvmswebsite/login/build/index.html', building: 'all' },
+        ];
+
+        const appData = [
+            { hospital: "ViMUT Hospital (VM)", category: "Dashboards & Analytics", name: "ViMUT_Dashboard_XRAY Temp&Humi", url: "https://www.appsheet.com/start/0788eed4-99c2-4cf0-9dca-26d6f8cc077f", icon: "📊", color: "#4CAF50" },
+            { hospital: "ViMUT Hospital (VM)", category: "Dashboards & Analytics", name: "ViMUT_iFEMs Dashboard Work Request(WR)", url: "https://www.appsheet.com/start/91a7575e-feee-4aa8-bfa6-57325fa5b3e7", icon: "🖥️", color: "#00BCD4" },
+            { hospital: "ViMUT Hospital (VM)", category: "Dashboards & Analytics", name: "ViMUT_Daily ENERGY Monitor", url: "https://www.appsheet.com/start/629bda75-2fe2-48a0-b7e4-2834750d7483", icon: "🔋", color: "#8BC34A" },
+            { hospital: "ViMUT Hospital (VM)", category: "Dashboards & Analytics", name: "ViMUT_STAFF Utilization", url: "https://www.appsheet.com/start/a4842628-e483-4686-bdab-2ec567d7cf2d", icon: "👥", color: "#9C27B0" },
+            { hospital: "ViMUT Hospital (VM)", category: "Dashboards & Analytics", name: "ViMUT_Dashboard Security Management", url: "https://www.appsheet.com/start/6228d314-154f-4351-bdfd-7dda53385904", icon: "🛡️", color: "#607D8B" },
+            { hospital: "ViMUT Hospital (VM)", category: "Engineering Operations", name: "ViMUT_Dashboard VSD Monitor", url: "https://www.appsheet.com/start/7cedd341-6b86-41a3-97cc-cb7ce5c995d5", icon: "🚀", color: "#E91E63" },
+            { hospital: "ViMUT Hospital (VM)", category: "Engineering Operations", name: "ViMUT_Waste Water Treatment System", url: "https://www.appsheet.com/start/c218dfc5-308b-40a0-b25e-7ca16160de56", icon: "♻️", color: "#43A047" },
+            { hospital: "ViMUT Hospital (VM)", category: "Engineering Operations", name: "ViMUT_PPM_IPD Room_Electrical&Medical", url: "https://www.appsheet.com/start/9e4c56ef-b78e-4c88-9938-fa2b4c5d0ecf", icon: "🔌", color: "#F44336" },
+            { hospital: "ViMUT Hospital (VM)", category: "Engineering Operations", name: "ViMUT_Daily Operation Chiller System", url: "https://www.appsheet.com/start/0682c57a-71aa-4b05-8349-ae5e148fdcc8", icon: "❄️", color: "#03A9F4" },
+            { hospital: "ViMUT Hospital (VM)", category: "Engineering Operations", name: "ViMUT_Dashboard PPM Plan Management", url: "https://www.appsheet.com/start/c671f4eb-2e8d-40a9-a393-5ba021833abd", icon: "🚐", color: "#1E88E5" },
+            { hospital: "ViMUT Hospital (VM)", category: "Facility & Environment", name: "ViMUT_Dashboard PM2.5&CO2 Monitor", url: "https://www.appsheet.com/start/6e3db8a9-a3f0-4b54-aad4-f07424fbcf9e", icon: "♻️", color: "#43A047" },
+            { hospital: "ViMUT Hospital (VM)", category: "Facility & Environment", name: "ViMUT_IAQ Critical Room Monitor", url: "https://www.appsheet.com/start/8d13183e-3338-4dcc-bfb1-e276f287a7bb", icon: "🌬️", color: "#81D4FA" },
+            { hospital: "ViMUT Hospital (VM)", category: "Facility & Environment", name: "ViMUT_Dashboard_OR Power plug Monitor", url: "https://www.appsheet.com/start/82e663c2-77a0-493e-8c98-b906574f2355", icon: "🏥", color: "#EF5350" },
+            { hospital: "ViMUT Hospital (VM)", category: "Facility & Environment", name: "ViMUT_Availability of IPD Room", url: "https://www.appsheet.com/start/83578437-0d5d-4c65-8a6c-83d6b4083d88", icon: "🛌", color: "#5C6BC0" },
+            { hospital: "ViMUT Hospital (VM)", category: "Facility & Environment", name: "ViMUT_Availability of Toiler Public Room", url: "https://www.appsheet.com/start/0d1c9dd6-a704-43f2-b233-e3f54dd873bb", icon: "🚻", color: "#78909C" },
+            { hospital: "ViMUT Hospital (VM)", category: "Facility & Environment", name: "ViMUT_Availability of General Room", url: "https://www.appsheet.com/start/62ba4591-44bd-4313-8971-a82908f4d16d", icon: "🏢", color: "#AB47BC" },
+            { hospital: "ViMUT Hospital (VM)", category: "Services & Handover", name: "ViMUT_CS_PORTER Services", url: "https://www.appsheet.com/start/f2abdca8-c00f-4b23-b85d-d0b4574c61c7", icon: "🤖", color: "#2196F3" },
+            { hospital: "ViMUT Hospital (VM)", category: "Services & Handover", name: "VIMUT_ROUND_HANDOVER Inspection", url: "https://www.appsheet.com/start/e14f0a75-0901-4dd6-8b09-dc1dcad30844", icon: "🔄", color: "#26A69A" },
+            { hospital: "ViMUT Hospital (VM)", category: "Assets & Inventory", name: "ViMUT_FEM Asset Management", url: "https://www.appsheet.com/start/e77a838c-a4a4-4d0b-9b50-454708c3004a", icon: "📦", color: "#795548" },
+            { hospital: "ViMUT Hospital (VM)", category: "Assets & Inventory", name: "ViMUT_General Asset Management", url: "https://www.appsheet.com/start/ec8e9694-b804-4094-88ea-3c31fc58e7dc", icon: "🏛️", color: "#757575" },
+            { hospital: "ViMUT Hospital (VM)", category: "Assets & Inventory", name: "ViMUT_Holding Asset Management", url: "https://www.appsheet.com/start/d9af023d-f810-4e0b-ad80-89698135f23a", icon: "📂", color: "#FFA000" },
+            { hospital: "ViMUT Hospital (VM)", category: "Assets & Inventory", name: "VIMUT_INVENTORY Management", url: "https://www.appsheet.com/start/fbd38447-d672-47ab-b675-78b9b9b02f8b", icon: "📝", color: "#546E7A" },
+            { hospital: "ViMUT Hospital (VM)", category: "Assets & Inventory", name: "ViMUT_MA Contract Management", url: "https://www.appsheet.com/start/0d182eaf-bc5f-488e-826c-1a1a57c6b7db", icon: "🤝", color: "#FB8C00" },
+            { hospital: "ViMUT Hospital (VM)", category: "Assets & Inventory", name: "ViMUT_Subcontract Quality Control", url: "https://www.appsheet.com/start/0dcb0047-e41d-4cd7-890b-6ba12fa473e9", icon: "✅", color: "#43A047" },
+            { hospital: "ViMUT Hospital (VM)", category: "Predictive Daily Operations", name: "ViMUT_Predictive OM Main Equipment Monitor", url: "https://www.appsheet.com/start/4c9b60fd-b2a2-4d8f-894b-c920e956ab42", icon: "🏠", color: "#FF7043" },
+            { hospital: "ViMUT Hospital (VM)", category: "Predictive Daily Operations", name: "ViMUT_BANNMOR CLINIC_Operation Main Equipment Monitor", url: "https://www.appsheet.com/start/88a1cd68-3f0e-47a9-91b9-4c48c9c27d04", icon: "🏘️", color: "#8D6E63" },
+            { hospital: "ViMUT-Theptarin (VTH)", category: "Energy Management", name: "VTH_Daily Energy Record Management", url: "https://www.appsheet.com/start/811802fe-2709-4d36-800e-baa3322c1f9a", icon: "⚡", color: "#FFC107" },
+            { hospital: "ViMUT-Theptarin (VTH)", category: "Energy Management", name: "VTH_Dashboard VSD Record", url: "https://www.appsheet.com/start/99c26ce6-8153-4cca-baaf-747ccfdf9319", icon: "📈", color: "#3F51B5" },
+            { hospital: "ViMUT-Theptarin (VTH)", category: "Main Daily Operations", name: "VTH_A Building Main Operation", url: "https://www.appsheet.com/start/baf57d28-f383-4dc3-901f-0d0876b39278", icon: "⚙️", color: "#FF9800" },
+            { hospital: "ViMUT-Theptarin (VTH)", category: "Main Daily Operations", name: "VTH_B Building Main Operation", url: "https://www.appsheet.com/start/306a48ad-d7d8-4751-a510-34fb6d7825e9", icon: "⚙️", color: "#FF9800" },
+            { hospital: "ViMUT-Theptarin (VTH)", category: "Main Daily Operations", name: "VTH_Chiller Daily Operation", url: "https://www.appsheet.com/start/fbd22fb7-5ff9-4310-b4b2-516b7fbc19cd", icon: "❄️", color: "#03A9F4" },
+            { hospital: "ViMUT-Theptarin (VTH)", category: "Main Daily Operations", name: "VTH_RCA Risk Monitor", url: "https://www.appsheet.com/start/ba8b12d6-0a09-43c6-964f-e6ebea413258", icon: "⚠️", color: "#D32F2F" }
+
+        ];
+
+        // --- 3. Functions ---
+        function togglePassword(id, el) {
+            const input = document.getElementById(id);
+            input.type = input.type === "password" ? "text" : "password";
+            el.classList.toggle('fa-eye'); el.classList.toggle('fa-eye-slash');
+        }
+
+        function toggleAuth(mode) {
+            document.getElementById('view-login').classList.toggle('hidden', mode === 'reg');
+            document.getElementById('view-register').classList.toggle('hidden', mode === 'login');
+        }
+
+        function doRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const bldg = document.getElementById('reg-building').value;
+            if (!name || !email || !pass || !bldg) return alert("Please fill all fields");
+            pendingUsers.push({ id: Date.now(), name, email, pass, bldg });
+            localStorage.setItem('ifems_pending', JSON.stringify(pendingUsers));
+            alert("Registration Submitted! Please wait for Admin approval.");
+            toggleAuth('login');
+        }
+
+        function doLogin() {
+            const u = document.getElementById('login-email').value;
+            const p = document.getElementById('login-pass').value;
+            const user = approvedUsers.find(x => x.email === u && x.pass === p);
+            if (user) {
+                currentUser = user;
+                document.getElementById('page-auth').classList.remove('active');
+                document.getElementById('main-header').classList.remove('hidden');
+                document.getElementById('main-nav').classList.remove('hidden');
+                document.getElementById('page-monitor').classList.add('active');
+                document.getElementById('user-display-name').innerText = `USER: ${user.name} | ZONE: ${user.bldg.toUpperCase()}`;
+                if (user.role === 'admin') {
+                    document.getElementById('admin-nav-item').classList.remove('hidden');
+                    renderAdminTable();
+                }
+                setupMonitorTabs(); renderApps();
+            } else { alert("Login Failed!"); }
+        }
+
+        function setupMonitorTabs() {
+            const container = document.getElementById('monitor-tabs');
+            let available = monitorDashboards;
+            if (currentUser.role !== 'admin' && currentUser.bldg !== 'all') {
+                available = monitorDashboards.filter(d => d.building === currentUser.bldg || d.building === 'all');
+            }
+            container.innerHTML = available.map((d, idx) => `
+                <button onclick="loadMonitor('${d.url}', this)" class="tab-btn ${idx === 0 ? 'active-tab' : ''}">${d.name}</button>
+            `).join('');
+            if (available.length > 0) loadMonitor(available[0].url, container.querySelector('.tab-btn'));
+        }
+
+        function loadMonitor(url, btn) {
+            document.getElementById('iframe-monitor').src = url;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+            btn.classList.add('active-tab');
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('app-grid');
+            let filtered = currentUser.role === 'admin' || currentUser.bldg === 'all' ? appData : appData.filter(x => x.hospital === currentUser.bldg);
+            grid.innerHTML = filtered.map(app => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 hover:shadow-lg transition cursor-pointer text-left" 
+                     style="border-left-color:${app.color}" onclick="window.open('${app.url}')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${app.icon}</span>
+                        <div class="overflow-hidden">
+                            <h3 class="text-[10px] font-bold text-slate-800 truncate uppercase">${app.name}</h3>
+                            <p class="text-[8px] text-slate-400 font-bold uppercase">${app.hospital}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAdminTable() {
+            const head = document.getElementById('admin-table-head');
+            const body = document.getElementById('admin-table-body');
+            const t = translations[currentLang];
+            
+            head.innerHTML = `<tr><th class="p-4">${t.col_name}</th><th class="p-4">${t.col_bldg}</th><th class="p-4">${t.col_status}</th><th class="p-4 text-center">${t.col_action}</th></tr>`;
+            
+            let html = "";
+            pendingUsers.forEach(u => {
+                html += `<tr class="border-b bg-amber-50"><td class="p-4"><b>${u.name}</b><br>${u.email}</td><td class="p-4">${u.bldg}</td>
+                <td class="p-4"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[9px] font-bold">${t.stat_pending}</span></td>
+                <td class="p-4 text-center space-y-1">
+                    <button onclick="approveUser(${u.id})" class="bg-emerald-500 text-white px-3 py-1 rounded font-bold text-[9px]">${t.btn_approve}</button>
+                    <button onclick="deleteUser(${u.id}, 'pending')" class="bg-red-500 text-white px-3 py-1 rounded font-bold text-[9px]">${t.btn_delete}</button>
+                </td></tr>`;
+            });
+            approvedUsers.forEach(u => {
+                if(u.role === 'admin') return;
+                html += `<tr class="border-b"><td class="p-4"><b>${u.name}</b><br>${u.email}</td><td class="p-4">${u.bldg}</td>
+                <td class="p-4"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[9px] font-bold">${t.stat_active}</span></td>
+                <td class="p-4 text-center">
+                    <button onclick="deleteUser(${u.id}, 'approved')" class="bg-red-500 text-white px-3 py-1 rounded font-bold text-[9px]">${t.btn_delete}</button>
+                </td></tr>`;
+            });
+            body.innerHTML = html || '<tr><td colspan="4" class="p-10 text-center text-slate-400">No data</td></tr>';
+        }
+
+        function approveUser(id) {
+            const user = pendingUsers.find(x => x.id === id);
+            approvedUsers.push({...user, role: 'user'});
+            pendingUsers = pendingUsers.filter(x => x.id !== id);
+            localStorage.setItem('ifems_approved', JSON.stringify(approvedUsers));
+            localStorage.setItem('ifems_pending', JSON.stringify(pendingUsers));
+            renderAdminTable();
+        }
+
+        function deleteUser(id, type) {
+            if(type === 'pending') pendingUsers = pendingUsers.filter(x => x.id !== id);
+            else approvedUsers = approvedUsers.filter(x => x.id !== id);
+            localStorage.setItem('ifems_pending', JSON.stringify(pendingUsers));
+            localStorage.setItem('ifems_approved', JSON.stringify(approvedUsers));
+            renderAdminTable();
+        }
+
+        function adjustZoom(type, delta) {
+            scales[type] = Math.min(Math.max(scales[type] + delta, 0.3), 1.5);
+            const frame = document.getElementById('iframe-' + type);
+            const p = (1 / scales[type]) * 100;
+            frame.style.width = p + '%'; frame.style.height = p + '%';
+            frame.style.transform = `scale(${scales[type]})`;
+        }
+
+        function switchPage(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+            el.classList.add('active-nav');
+        }
+
+        window.onload = () => { 
+            new QRCode(document.getElementById("qrcode"), { text: 'https://fabulous-sfogliatella-a23986.netlify.app', width: 45, height: 45 });
+            changeLang(currentLang);
+        };
+    </script>
+</body>
+</html>
